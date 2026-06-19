@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class BrowserController:
 
     def __init__(self):
-        self.playwright = Optional[Playwright] = None
+        self.playwright: Optional[Playwright] = None
         self.browser: Optional[Browser] = None
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
@@ -72,7 +72,8 @@ class BrowserController:
 
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = "screenshot_{timestamp}.png"
+            filename = f"screenshot_{timestamp}.png"
+            
         elif not filename.endswith(".png"):
             filename = f"{filename}.png"
         
