@@ -73,7 +73,7 @@ class BrowserController:
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"screenshot_{timestamp}.png"
-            
+
         elif not filename.endswith(".png"):
             filename = f"{filename}.png"
         
