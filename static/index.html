@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CortexWeb — Autonomous Browser Agent</title>
-    <meta name="description" content="CortexWeb: An autonomous AI agent that navigates the web, fills forms, and executes multi-step browser objectives in real time.">
+    <title>Agentic Web Navigator — sees. thinks. acts.</title>
+    <meta name="description" content="An autonomous AI agent that navigates the web, reads pages, fills forms, and completes multi-step browser objectives in real time.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -100,12 +100,12 @@
         .brand-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .brand-icon {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             background: var(--orange);
             border-radius: var(--radius-sm);
             display: flex;
@@ -120,30 +120,27 @@
             stroke: white;
         }
 
-        .brand-name {
-            font-size: 1.15rem;
+        /* Two-line brand tagline — no product name, just description */
+        .brand-tagline {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            line-height: 1;
+        }
+
+        .brand-line1 {
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--cream);
-            letter-spacing: -0.3px;
+            letter-spacing: -0.2px;
         }
 
-        .brand-name span {
-            color: var(--orange);
-        }
-
-        .brand-sep {
-            width: 1px;
-            height: 22px;
-            background: var(--espresso-lt);
-            margin: 0 4px;
-        }
-
-        .brand-tag {
-            font-size: 0.72rem;
-            color: var(--text-faint);
+        .brand-line2 {
+            font-size: 0.62rem;
             font-family: 'Space Mono', monospace;
+            color: var(--text-faint);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.4px;
         }
 
         .header-right {
@@ -233,93 +230,116 @@
             z-index: 5;
             background: var(--cream-dark);
             border-bottom: 1px solid var(--sand);
-            padding: 1rem 2rem;
+            padding: 0.85rem 2rem;
             display: flex;
             align-items: center;
             gap: 1rem;
             flex-shrink: 0;
         }
 
-        .select-wrap {
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .task-select {
-            appearance: none;
-            background: var(--cream);
-            border: 1.5px solid var(--sand);
-            color: var(--text-body);
-            padding: 0.65rem 2.4rem 0.65rem 1rem;
-            border-radius: var(--radius-md);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            outline: none;
-            transition: border-color 0.2s;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .task-select:focus { border-color: var(--orange); }
-
-        .select-arrow {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-            color: var(--text-muted);
-        }
-
-        .objective-input {
+        /* Unified pill capsule — one border wrapping dropdown + divider + input */
+        .search-capsule {
             flex: 1;
+            display: flex;
+            align-items: center;
             background: var(--cream);
             border: 1.5px solid var(--sand);
-            color: var(--text-head);
-            padding: 0.65rem 1.2rem;
-            border-radius: var(--radius-md);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.875rem;
-            outline: none;
+            border-radius: 100px;
+            overflow: hidden;
             transition: border-color 0.2s, box-shadow 0.2s;
             box-shadow: var(--shadow-sm);
         }
 
-        .objective-input::placeholder { color: var(--text-faint); }
-
-        .objective-input:focus {
-            border-color: var(--orange);
-            box-shadow: 0 0 0 3px var(--orange-dim);
+        .search-capsule:focus-within {
+            border-color: var(--sand-mid);
+            box-shadow: 0 0 0 3px rgba(200, 185, 154, 0.25);
         }
 
+        /* Dropdown inside capsule */
+        .select-wrap {
+            position: relative;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .task-select {
+            appearance: none;
+            background: transparent;
+            border: none;
+            color: var(--text-body);
+            padding: 0.7rem 2rem 0.7rem 1.2rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            white-space: nowrap;
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        /* Vertical divider between select and input */
+        .capsule-divider {
+            width: 1px;
+            height: 22px;
+            background: var(--sand);
+            flex-shrink: 0;
+        }
+
+        /* Text input inside capsule */
+        .objective-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-head);
+            padding: 0.7rem 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.875rem;
+            outline: none;
+            min-width: 0;
+        }
+
+        .objective-input::placeholder { color: var(--text-faint); }
+
+        /* Launch button — sits outside the capsule as an orange circle */
         .launch-btn {
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 7px;
             background: var(--orange);
             color: white;
             border: none;
-            padding: 0.65rem 1.5rem;
-            border-radius: var(--radius-md);
+            height: 42px;
+            padding: 0 1.4rem;
+            border-radius: 100px;
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
-            letter-spacing: 0.3px;
-            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 4px 14px rgba(255,92,40,0.35);
+            letter-spacing: 0.2px;
+            transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
+            box-shadow: 0 4px 16px rgba(255,92,40,0.32);
             white-space: nowrap;
             flex-shrink: 0;
         }
 
         .launch-btn:hover {
             background: var(--orange-hover);
-            box-shadow: 0 6px 20px rgba(255,92,40,0.45);
+            box-shadow: 0 6px 22px rgba(255,92,40,0.42);
             transform: translateY(-1px);
         }
 
-        .launch-btn:active { transform: translateY(0) scale(0.98); }
+        .launch-btn:active { transform: scale(0.97); }
 
         .launch-btn:disabled {
             background: var(--sand);
@@ -337,8 +357,8 @@
 
         /* Spinner for loading state */
         .btn-spinner {
-            width: 14px;
-            height: 14px;
+            width: 13px;
+            height: 13px;
             border: 2px solid rgba(255,255,255,0.35);
             border-top-color: white;
             border-radius: 50%;
@@ -829,10 +849,11 @@
                         <path d="M2 12h4M18 12h4M12 2v4M12 18v4"/>
                     </svg>
                 </div>
-                <span class="brand-name">Cortex<span>Web</span></span>
             </div>
-            <div class="brand-sep"></div>
-            <span class="brand-tag">Autonomous Agent</span>
+            <div class="brand-tagline">
+                <span class="brand-line1">sees. thinks. acts.</span>
+                <span class="brand-line2">agentic web navigator</span>
+            </div>
         </div>
 
         <div class="header-right">
@@ -851,29 +872,33 @@
 
     <!-- ===== COMMAND BAR ===== -->
     <div class="command-section">
-        <div class="select-wrap">
-            <select class="task-select" id="task-select">
-                <option value="shadcn">Shadcn Form Verification</option>
-                <option value="custom">Custom Objective…</option>
-            </select>
-            <svg class="select-arrow" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M6 9l6 6 6-6"/>
-            </svg>
-        </div>
+        <div class="search-capsule">
+            <div class="select-wrap">
+                <select class="task-select" id="task-select">
+                    <option value="shadcn">Shadcn Form Verification</option>
+                    <option value="custom">Custom Objective…</option>
+                </select>
+                <svg class="select-arrow" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </div>
 
-        <input
-            type="text"
-            class="objective-input"
-            id="objective-field"
-            placeholder="Enter a browser objective for the agent…"
-        />
+            <div class="capsule-divider"></div>
+
+            <input
+                type="text"
+                class="objective-input"
+                id="objective-field"
+                placeholder="Describe a web task for the agent…"
+            />
+        </div>
 
         <button class="launch-btn" id="run-button">
             <div class="btn-spinner" id="btn-spinner"></div>
             <svg id="btn-play-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
             </svg>
-            <span id="btn-label">Launch Agent</span>
+            <span id="btn-label">Run</span>
         </button>
     </div>
 
@@ -1194,7 +1219,7 @@
             runButton.disabled        = false;
             btnSpinner.style.display  = "none";
             btnPlayIcon.style.display = "block";
-            btnLabel.textContent      = "Launch Agent";
+            btnLabel.textContent      = "Run";
         }
 
         function appendLog(type, thought, text) {
