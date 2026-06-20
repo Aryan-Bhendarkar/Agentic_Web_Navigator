@@ -2,6 +2,8 @@ import logging
 from typing import Optional, List, Dict, Any
 from playwright.async_api import Locator
 from browser.controller import BrowserController
+from vision.screenshot_analyzer import ScreenshotAnalyzer
+
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +12,7 @@ class ElementDetector:
 
     def __init__ (self, controller: BrowserController) -> None:
         self.controller = controller
+        self.vision_analyzer = ScreenshotAnalyzer()
 
     @property
     # Helper property to access the active Page object dynamically.
@@ -72,6 +75,66 @@ class ElementDetector:
         return None
 
     
+    async def detect_element_location(self, label_or_description: str) -> Dict[str, Any]:
+        """
+        Locates an element using the 4-level strategy.
+        Returns a dictionary indicating the lookup status:
+        - {"type": "selector", "value": "#name"}
+        - {"type": "coordinates", "value": (x, y)}
+        - {"type": "not_found", "value": None}
+        """
+        # Try DOM-based detection first (input fields, buttons, etc.)
+        locator = await self.find_input_field(label_or_description)
+        
+        # If not found as a standard input, check if it's a visible button/link semantically
+        if not locator:
+            try:
+                # Check for buttons, links, or text matching the description
+                for role in ["button", "link", "checkbox"]:
+                    loc = self.page.get_by_role(role, name=label_or_description, exact=False)
+                    if await loc.count() > 0:
+                        locator = loc.first
+                        break
+            except Exception as e:
+                logger.debug(f"Role lookup failed: {e}")
+        # Check if the description itself is already a direct valid CSS/XPath selector
+        if not locator:
+            try:
+                loc = self.page.locator(label_or_description)
+                if await loc.count() > 0 and await loc.first.is_visible():
+                    locator = loc.first
+            except Exception:
+                pass  # Not a valid selector, move to vision
+        # If DOM methods succeeded, extract selector information
+        if locator:
+            el_id = await locator.get_attribute("id")
+            el_name = await locator.get_attribute("name")
+            selector = f"#{el_id}" if el_id else f"[name='{el_name}']" if el_name else label_or_description
+            return {"type": "selector", "value": selector}
+        # Level 4: Fallback to Vision-Based Detection
+        logger.info(f"DOM lookup failed for '{label_or_description}'. Falling back to Vision...")
+        try:
+            # Capture a temporary screenshot of the current page state
+            screenshot_path = await self.controller.take_screenshot("temp_vision_search")
+            
+            # Send to visual screenshot analyzer
+            coordinates = await self.vision_analyzer.locate_element_visually(
+                screenshot_path, 
+                label_or_description
+            )
+            
+            # Clean up temp screenshot
+            if screenshot_path.exists():
+                screenshot_path.unlink()
+            if coordinates:
+                return {"type": "coordinates", "value": coordinates}
+            
+        except Exception as e:
+            logger.error(f"Vision detection failed: {e}", exc_info=True)
+        return {"type": "not_found", "value": None}
+
+    
+
     #  Scans the page DOM for all fillable input fields and textareas.
     async def scan_fillable_fields(self) -> List[Dict[str, Any]]:
         

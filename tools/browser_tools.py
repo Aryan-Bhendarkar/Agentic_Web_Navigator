@@ -192,16 +192,21 @@ async def find_element(label_or_name: str) -> str:
     Returns details of the element if found.
     """
     _, _, detector = get_browser_resources()
+    
     try:
-        locator = await detector.find_input_field(label_or_name)
-        if locator:
-            # Construct a helper description to let the agent know where it is
-            el_id = await locator.get_attribute("id") or ""
-            el_name = await locator.get_attribute("name") or ""
-            
-            selector = f"#{el_id}" if el_id else f"[name='{el_name}']" if el_name else "Detected locator"
-            return f"Found field matching '{label_or_name}' with selector: '{selector}'"
+        result = await detector.detect_element_location(label_or_name)
+        lookup_type = result["type"]
+        value = result["value"]
+
+        if lookup_type == "selector":
+            return f"Found element matching '{label_or_name}' with selector: '{value}'"
+        
+        elif lookup_type == "coordinates":
+            x, y = value
+            return f"Found element matching '{label_or_name}' visually at coordinates: {x}, {y}"
+       
         else:
-            return f"No fillable field found matching '{label_or_name}'"
+            return f"No element found matching '{label_or_name}' by DOM or Vision."
+            
     except Exception as e:
         return f"Error while trying to detect element matching '{label_or_name}': {str(e)}"
