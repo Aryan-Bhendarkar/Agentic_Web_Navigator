@@ -1,4 +1,3 @@
-from IPython.core import history
 from typing import TypedDict, List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
