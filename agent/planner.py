@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Dict, Any, List 
 from pydantic import BaseModel, Field
@@ -30,7 +31,7 @@ class AgentPlanner:
             openai_api_key=settings.OPENROUTER_API_KEY,
             openai_api_base=settings.OPENROUTER_BASE_URL,
             temperature=0.0,
-            max_tokens=10000
+            max_tokens=1000
         )
 
         self.structured_llm = self.llm.with_structured_output(AgentAction)
@@ -95,8 +96,8 @@ class AgentPlanner:
         return "\n".join(formatted)
 
     
-    # Invokes the LLM to inspect the state and output the next structured action.Updates the next_tool, next_tool_args, and status state fields.
-    async def plan(self, state: AgentState) ->  Dict[str, Any]:
+    # Invokes the LLM to inspect the state and output the next structured action. Updates the next_tool, next_tool_args, and status state fields.
+    async def plan(self, state: AgentState) -> Dict[str, Any]:
         
         logger.info(f"Planner reviewing agent state. Current attempts: {state['attempts']}")
 
@@ -109,33 +110,56 @@ class AgentPlanner:
             f"Previous Steps:\n{history_text}\n"
         )
 
-        try:
-            # Call the structured LLM
-            action: AgentAction = await self.structured_llm.ainvoke([
-                SystemMessage(content=system_content),
-                HumanMessage(content=user_content)
-            ])
+        messages = [
+            SystemMessage(content=system_content),
+            HumanMessage(content=user_content)
+        ]
 
-            logger.info(f"Planner thought: '{action.thought}'")
-            logger.info(f"Planner action: {action.tool}({action.args})")
+        max_retries = 3
+        last_error = None
 
-            if action.tool == "finish":
+        for attempt in range(max_retries):
+            try:
+                # Call the structured LLM
+                action: AgentAction = await self.structured_llm.ainvoke(messages)
+
+                logger.info(f"Planner thought: '{action.thought}'")
+                logger.info(f"Planner action: {action.tool}({action.args})")
+
+                if action.tool == "finish":
+                    return {
+                        "next_tool": "finish",
+                        "next_tool_args": {},
+                        "status": "success",
+                        "thought": action.thought
+                    }
+
                 return {
-                    "next_tool": "finish",
-                    "next_tool_args": {},
-                    "status": "success"
+                    "next_tool": action.tool,
+                    "next_tool_args": action.args,
+                    "status": "running",
+                    "thought": action.thought
                 }
 
-            return {
-                "next_tool": action.tool,
-                "next_tool_args": action.args,
-                "status": "running"
-            }
+            except Exception as e:
+                last_error = e
+                logger.warning(f"Planner LLM attempt {attempt + 1}/{max_retries} failed: {e}")
+                if attempt < max_retries - 1:
+                    # Add a correction hint and retry
+                    messages = messages + [
+                        HumanMessage(content=(
+                            "Your previous response could not be parsed as valid JSON. "
+                            "Please respond ONLY with a valid JSON object matching the required schema. "
+                            "Ensure all string values are properly quoted and all required fields "
+                            "(thought, tool, args) are present."
+                        ))
+                    ]
+                    await asyncio.sleep(1.0)
 
-        except Exception as e:
-            logger.error(f"Planner LLM failed to decide next action: {e}", exc_info=True)
-            return {
-                "next_tool": None,
-                "next_tool_args": None,
-                "status": "failed"
-            }
+        logger.error(f"Planner LLM failed after {max_retries} retries: {last_error}", exc_info=True)
+        return {
+            "next_tool": None,
+            "next_tool_args": None,
+            "status": "failed",
+            "thought": None
+        }

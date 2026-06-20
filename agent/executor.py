@@ -43,7 +43,7 @@ planner = AgentPlanner()
 async def planner_node(state: AgentState) -> Dict[str, Any]:
     if state["attempts"] >= 15:
         logger.warning("Max execution steps reached (15). Halting agent.")
-        return {"status": "failed", "next_tool": "finish"}
+        return {"status": "failed", "next_tool": "finish", "thought": "Max execution steps reached. Halting agent."}
 
     plan_result = await planner.plan(state)
     return plan_result
@@ -100,7 +100,8 @@ async def action_node(state: AgentState) -> Dict[str, Any]:
         "screenshot_path": screenshot_path,
         "attempts": attempts + 1,
         "next_tool": None,
-        "next_tool_args": None
+        "next_tool_args": None,
+        "thought": None
     }
 
 

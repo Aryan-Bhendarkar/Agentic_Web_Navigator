@@ -24,11 +24,11 @@ class AgentState(TypedDict):
     next_tool: Optional[str]
     next_tool_args: Optional[Dict[str, Any]]
 
+    # The planner's reasoning thought for the current step
+    thought: Optional[str]
+
     # Safety iteration tracker
     attempts: int
 
     # Status tracking: running, success, failed
     status: str
-
-
-
