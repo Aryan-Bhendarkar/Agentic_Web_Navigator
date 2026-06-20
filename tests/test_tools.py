@@ -9,7 +9,6 @@ from tools.browser_tools import (
     navigate_to_url,
     find_element,
     fill_field,
-    click_coordinates,
     scroll,
     take_screenshot
 )
