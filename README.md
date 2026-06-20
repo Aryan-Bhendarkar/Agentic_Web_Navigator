@@ -1,68 +1,56 @@
-# CortexWeb Agent
+# CortexWeb: Autonomous Web Navigation Agent
 
-An autonomous browser automation agent powered by Python, Playwright, LangGraph, and OpenRouter (Gemini Multimodal). The agent navigates websites, fills forms, handles coordinate-based clicking, and employs visual fallback strategies to bypass broken selector limitations.
+CortexWeb is an autonomous browser automation agent built using Python, Playwright, and LangGraph. It enables large language models (LLMs) to navigate web interfaces, interact with complex forms, recover from selector timeouts, and fall back to computer vision for coordinate-based actions when traditional DOM elements are unreachable.
 
----
-
-## Features
-- **LangGraph Orchestrator**: Loop planning architecture.
-- **4-Level Element Detection**: Semantic DOM, CSS, XPath, and Multimodal Vision Fallback.
-- **Structured LLM Actions**: Actions validated using Pydantic schemas.
-- **Run Summary Logs**: Execution summaries serialized to `logs/run_memory.json` on finish.
-- **Visual Failure Logging**: Automatic screenshot capture of page states on action timeouts.
-- **Interactive Control Center**: Real-time FastAPI + HTML5/CSS3 glassmorphic monitor dashboard.
+Includes a live glassmorphic dashboard built on FastAPI (SSE streaming) to monitor the agent's planner thoughts, logs, and viewport screenshots in real time.
 
 ---
 
-## Installation & Setup
+## Technical Highlights & Engineering Challenges Solved
 
-1. **Clone & Setup Virtual Environment**:
+### 1. Multi-Threaded Event Loop Isolation (Windows Compatibility)
+* **Challenge**: On Windows, Playwright requires a `ProactorEventLoop` to manage browser subprocesses. However, Uvicorn's hot-reload mode forces Python to use the `SelectorEventLoop` to watch files, which crashes Playwright with a `NotImplementedError` upon browser startup.
+* **Solution**: Implemented a decoupled multithreaded architecture in `app.py`. The web server receives requests and launches the LangGraph agent in a dedicated background thread running its own `ProactorEventLoop`. Events are piped back to the main thread's Server-Sent Events (SSE) generator via a thread-safe `queue.Queue`.
+
+### 2. Self-Correcting Structured Outputs
+* **Challenge**: Multimodal LLMs occasionally output schemas that violate Pydantic validation rules, causing the agent to halt mid-execution.
+* **Solution**: Developed a 3-step structured retry loop within `AgentPlanner`. On a validation error, the planner catches the exception, appends the parser error to the message history, and retries. This corrective feedback loop allows the model to immediately repair its own JSON responses.
+
+### 3. 4-Level Resilient Element Detection
+* **Challenge**: Modern dynamic frontend frameworks (React, Vue) often obfuscate selectors or render dynamic DOM nodes that cause standard automated clicks to fail.
+* **Solution**: Created a layered element resolution pipeline:
+  1. **Semantic Search**: Checks accessibility labels, placeholders, and ARIA attributes.
+  2. **Direct Selectors**: Queries fallback CSS patterns.
+  3. **XPath Matches**: Attempts generic hierarchy checks.
+  4. **Multimodal Visual Detection**: Captures a page screenshot, queries the LLM with vision support (Gemini 2.5 Flash) to locate the element's approximate coordinate center `(x, y)`, and executes a physical mouse click.
+
+---
+
+## Core Stack
+* **Orchestration**: LangGraph (StateGraph machine loop)
+* **Automation**: Playwright (Async Python API)
+* **Model Routing**: OpenRouter (Google Gemini 2.5 Flash)
+* **Server & Frontend**: FastAPI, Server-Sent Events (SSE), HTML5/Vanilla CSS3
+
+---
+
+## Quick Start
+
+1. **Install Dependencies**:
    ```bash
-   python -m venv venv
-   ./venv/Scripts/activate  # Windows
-   source venv/bin/activate  # macOS/Linux
    pip install -r requirements.txt
    playwright install chromium
    ```
 
-2. **Configure Environment Variables**:
-   Create a `.env` file in the root directory:
+2. **Configure Environment**:
+   Create a `.env` file in the root:
    ```env
    DEFAULT_LLM_MODEL=google/gemini-2.5-flash
-   OPENROUTER_API_KEY=your_openrouter_api_key
+   OPENROUTER_API_KEY=your_key_here
    ```
 
----
-
-## Running the Agent & Tests
-
-### Web Control Center Dashboard
-* Run the API & Frontend server:
-  ```bash
-  python -m uvicorn app:app --reload --port 8000
-  ```
-* Open `http://localhost:8000` to interact with the dashboard, view live logs, and browse step screenshots.
-
-### CLI Execution
-* Run the autonomous target task against Shadcn react-hook-form:
-  ```bash
-  python -m scratch.verify_shadcn
-  ```
-* Run the pytest suite:
-  ```bash
-  pytest tests/
-  ```
-
-### Docker Execution
-* Build the docker container:
-  ```bash
-  docker build -t cortexweb-agent .
-  ```
-* Run unit tests inside Docker:
-  ```bash
-  docker run --rm cortexweb-agent
-  ```
-* Run the agent inside Docker (mounting logs and screenshots):
-  ```bash
-  docker run --rm --env-file .env -v ${PWD}/logs:/app/logs -v ${PWD}/screenshots:/app/screenshots cortexweb-agent python -m scratch.test_agent
-  ```
+3. **Run the Dashboard**:
+   ```bash
+   python -m uvicorn app:app --reload --port 8000
+   ```
+   Open `http://localhost:8000` to select objectives and launch the agent.
