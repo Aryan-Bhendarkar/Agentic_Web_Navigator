@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CortexWeb Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: hsl(224, 25%, 5%);
+            --card-base: hsla(224, 25%, 9%, 0.55);
+            --card-border: hsla(220, 20%, 20%, 0.35);
+            --card-border-glow: hsla(262, 80%, 60%, 0.1);
+            
+            --primary: hsl(262, 80%, 60%);
+            --primary-hover: hsl(262, 80%, 53%);
+            --primary-glow: hsla(262, 80%, 60%, 0.25);
+            
+            --accent-green: hsl(150, 75%, 45%);
+            --accent-green-glow: hsla(150, 75%, 45%, 0.15);
+            --accent-amber: hsl(38, 90%, 55%);
+            --accent-amber-glow: hsla(38, 90%, 55%, 0.15);
+            --accent-red: hsl(350, 80%, 55%);
+            
+            --text-primary: hsl(210, 40%, 98%);
+            --text-secondary: hsl(215, 18%, 78%);
+            --text-muted: hsl(215, 12%, 58%);
+            --terminal-bg: hsl(224, 30%, 3%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(262, 80%, 60%, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(150, 75%, 45%, 0.04) 0px, transparent 50%);
+        }
+
+        header {
+            padding: 1.1rem 2rem;
+            background: hsla(224, 25%, 5%, 0.8);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-orb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-green) 100%);
+            box-shadow: 0 0 14px var(--primary-glow);
+        }
+
+        .brand-text h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 1px;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .stat-capsule {
+            background: hsla(224, 15%, 15%, 0.45);
+            border: 1px solid var(--card-border);
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .stat-capsule strong {
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            background: hsla(224, 15%, 15%, 0.55);
+            border: 1px solid var(--card-border);
+            padding: 0.45rem 1.2rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .status-dot.running {
+            background-color: var(--accent-amber);
+            box-shadow: 0 0 10px var(--accent-amber);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot.success {
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .status-dot.failed {
+            background-color: var(--accent-red);
+            box-shadow: 0 0 10px var(--accent-red);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            gap: 1.25rem;
+            overflow: hidden;
+        }
+
+        .control-bar {
+            background: var(--card-base);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .control-input-group {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .prompt-select {
+            background: hsl(224, 20%, 8%);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.75rem 1.1rem;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .prompt-select:focus {
+            border-color: var(--primary);
+        }
+
+        .objective-input {
+            flex: 1;
+            background: hsl(224, 20%, 8%);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .objective-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .launch-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: box-shadow 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .launch-btn:hover {
+            box-shadow: 0 4px 20px hsla(262, 80%, 60%, 0.55);
+        }
+
+        .launch-btn:active {
+            transform: scale(0.98);
+        }
+
+        .launch-btn:disabled {
+            background: hsl(224, 10%, 15%);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .workspace-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 4fr 5.5fr;
+            gap: 1.25rem;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .pane {
+            background: var(--card-base);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        }
+
+        .pane-header {
+            padding: 0.9rem 1.25rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: hsla(224, 20%, 8%, 0.45);
+        }
+
+        .pane-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .pane-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Styled Terminal UI */
+        .terminal-container {
+            flex: 1;
+            background: var(--terminal-bg);
+            padding: 1.25rem;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .log-entry {
+            border-left: 3px solid var(--primary);
+            padding-left: 12px;
+            animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 4px;
+        }
+
+        .log-entry.system { border-color: var(--text-muted); }
+        .log-entry.planner { border-color: var(--primary); }
+        .log-entry.action { border-color: var(--accent-green); }
+        .log-entry.error { border-color: var(--accent-red); }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .log-tag {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .log-tag.system { color: var(--text-secondary); }
+        .log-tag.planner { color: var(--primary); }
+        .log-tag.action { color: var(--accent-green); }
+        .log-tag.error { color: var(--accent-red); }
+
+        .log-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .log-thought {
+            color: #C7D2FE;
+            font-style: italic;
+            margin-bottom: 4px;
+            background: hsla(262, 80%, 60%, 0.05);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border-left: 2px solid hsla(262, 80%, 60%, 0.3);
+        }
+
+        .log-action {
+            color: hsl(262, 80%, 75%);
+            font-weight: 600;
+        }
+
+        .log-observation {
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 4px;
+            font-size: 0.78rem;
+            white-space: pre-wrap;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Browser Frame Simulator */
+        .browser-simulator {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: hsl(224, 25%, 8%);
+            border-radius: 12px;
+            margin: 1.25rem;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .browser-chrome {
+            background: hsl(224, 20%, 10%);
+            border-bottom: 1px solid var(--card-border);
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 16px;
+        }
+
+        .browser-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .control-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-close { background-color: #EF4444; }
+        .dot-minimize { background-color: #F59E0B; }
+        .dot-maximize { background-color: #10B981; }
+
+        .browser-address-bar {
+            flex: 1;
+            background: hsl(224, 20%, 7%);
+            border: 1px solid var(--card-border);
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            gap: 6px;
+            overflow: hidden;
+        }
+
+        .ssl-lock {
+            color: var(--accent-green);
+        }
+
+        .browser-viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: hsl(224, 30%, 4%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .viewport-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .viewport-img.loaded {
+            display: block;
+        }
+
+        .viewport-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .viewport-placeholder svg {
+            width: 48px;
+            height: 48px;
+            stroke: hsla(255, 255, 255, 0.12);
+        }
+
+        /* Interactive Timeline Slider */
+        .timeline-grid {
+            background: var(--card-base);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            align-items: center;
+            min-height: 95px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .timeline-card {
+            width: 110px;
+            height: 65px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            opacity: 0.55;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.9) 100%);
+            z-index: 1;
+        }
+
+        .timeline-card:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .timeline-card.active {
+            border-color: var(--primary);
+            opacity: 1;
+            box-shadow: 0 0 12px var(--primary-glow);
+            transform: scale(1.02);
+        }
+
+        .timeline-card.failure {
+            border-color: var(--accent-red);
+        }
+
+        .timeline-label {
+            position: absolute;
+            bottom: 4px;
+            left: 6px;
+            right: 6px;
+            font-size: 0.55rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            z-index: 2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        .timeline-step-badge {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            font-size: 0.52rem;
+            background: var(--primary);
+            color: white;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        .timeline-step-badge.fail {
+            background: var(--accent-red);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-brand">
+            <div class="brand-orb"></div>
+            <div class="brand-text">
+                <h1>CORTEXWEB CONTROL CENTER</h1>
+                <p>Autonomous Agent Monitor</p>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-capsule">
+                <span>Objective Steps:</span>
+                <strong id="steps-counter">0</strong>
+            </div>
+            <div class="stat-capsule">
+                <span>Duration:</span>
+                <strong id="timer-counter">0.0s</strong>
+            </div>
+            <div class="status-badge">
+                <span class="status-dot" id="status-indicator"></span>
+                <span id="status-text">Standby</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="control-bar">
+            <div class="control-input-group">
+                <select class="prompt-select" id="task-select">
+                    <option value="shadcn">Shadcn Form Verification (Assignment 4)</option>
+                    <option value="custom">Custom Objective...</option>
+                </select>
+                <input type="text" class="objective-input" id="objective-field" placeholder="Enter browser objective...">
+                <button class="launch-btn" id="run-button">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
+                    Launch Agent
+                </button>
+            </div>
+        </div>
+
+        <div class="workspace-grid">
+            <!-- Left Side: Terminal Log -->
+            <div class="pane">
+                <div class="pane-header">
+                    <span class="pane-title">Execution Logs</span>
+                    <span class="pane-meta">Streaming Node Actions</span>
+                </div>
+                <div class="terminal-container" id="terminal">
+                    <div class="terminal-welcome">
+                        &gt; CortexWeb Agent initialization complete. Ready to receive commands.<br>
+                        &gt; Select an objective above and click "Launch Agent" to start execution.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Screenshot Preview -->
+            <div class="pane">
+                <div class="pane-header">
+                    <span class="pane-title" id="preview-title">Browser View</span>
+                    <span class="pane-meta" id="preview-url">No active URL</span>
+                </div>
+                
+                <div class="browser-simulator">
+                    <div class="browser-chrome">
+                        <div class="browser-controls">
+                            <div class="control-dot dot-close"></div>
+                            <div class="control-dot dot-minimize"></div>
+                            <div class="control-dot dot-maximize"></div>
+                        </div>
+                        <div class="browser-address-bar">
+                            <span class="ssl-lock">&#128274;</span>
+                            <span id="address-bar-text">about:blank</span>
+                        </div>
+                    </div>
+                    <div class="browser-viewport">
+                        <div class="viewport-placeholder" id="viewport-placeholder">
+                            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z"/></svg>
+                            <span>Launch agent to establish viewport session</span>
+                        </div>
+                        <img src="" alt="Browser Screen" class="viewport-img" id="viewport-view">
+                    </div>
+                </div>
+
+                <div class="timeline-grid" id="timeline">
+                    <!-- Step Timeline Cards go here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SHADCN_DEFAULT_OBJECTIVE = "Navigate to: https://ui.shadcn.com/docs/forms/react-hook-form. Find the username input field (labeled 'Username') and fill it with 'Antigravity-Agent'. If there are other fields like description, fill them. Click the Submit button to verify React Hook Form.";
+
+        const taskSelect = document.getElementById("task-select");
+        const objectiveField = document.getElementById("objective-field");
+        const runButton = document.getElementById("run-button");
+        const terminal = document.getElementById("terminal");
+        const statusIndicator = document.getElementById("status-indicator");
+        const statusText = document.getElementById("status-text");
+        const viewportView = document.getElementById("viewport-view");
+        const viewportPlaceholder = document.getElementById("viewport-placeholder");
+        const previewUrl = document.getElementById("preview-url");
+        const addressBarText = document.getElementById("address-bar-text");
+        const timeline = document.getElementById("timeline");
+        const stepsCounter = document.getElementById("steps-counter");
+        const timerCounter = document.getElementById("timer-counter");
+
+        let stepHistory = [];
+        let executionTimer = null;
+        let timerStart = 0;
+
+        // Prepopulate default objective
+        objectiveField.value = SHADCN_DEFAULT_OBJECTIVE;
+        objectiveField.disabled = true;
+
+        taskSelect.addEventListener("change", () => {
+            if (taskSelect.value === "shadcn") {
+                objectiveField.value = SHADCN_DEFAULT_OBJECTIVE;
+                objectiveField.disabled = true;
+            } else {
+                objectiveField.value = "";
+                objectiveField.disabled = false;
+                objectiveField.focus();
+            }
+        });
+
+        runButton.addEventListener("click", async () => {
+            const objective = objectiveField.value.trim();
+            if (!objective) {
+                alert("Please select or enter an objective first!");
+                return;
+            }
+
+            // Reset UI
+            runButton.disabled = true;
+            terminal.innerHTML = "";
+            timeline.innerHTML = "";
+            stepHistory = [];
+            stepsCounter.innerText = "0";
+            
+            // Start timer
+            clearInterval(executionTimer);
+            timerStart = Date.now();
+            executionTimer = setInterval(() => {
+                const diff = (Date.now() - timerStart) / 1000;
+                timerCounter.innerText = diff.toFixed(1) + "s";
+            }, 100);
+
+            statusIndicator.className = "status-dot running";
+            statusText.innerText = "Running";
+            
+            appendTerminalLog("SYSTEM", "Initializing agent runner graph... Loading browser binaries...");
+
+            try {
+                const response = await fetch("/api/run", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ objective })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                const processLines = (chunk) => {
+                    const lines = chunk.split("\n");
+                    for (const line of lines) {
+                        const cleanLine = line.trim();
+                        if (cleanLine.startsWith("data: ")) {
+                            try {
+                                const parsed = JSON.parse(cleanLine.slice(6));
+                                handleAgentUpdate(parsed);
+                            } catch(e) {
+                                console.error("Error parsing SSE line:", e, cleanLine);
+                            }
+                        }
+                    }
+                };
+
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        // Flush any remaining buffered data
+                        if (buffer.trim()) processLines(buffer);
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lastNewline = buffer.lastIndexOf("\n");
+                    if (lastNewline !== -1) {
+                        processLines(buffer.slice(0, lastNewline + 1));
+                        buffer = buffer.slice(lastNewline + 1);
+                    }
+                }
+
+                // If the agent finished without emitting a terminal status, re-enable button
+                if (runButton.disabled) {
+                    clearInterval(executionTimer);
+                    runButton.disabled = false;
+                    if (statusText.innerText === "Running") {
+                        statusIndicator.className = "status-dot success";
+                        statusText.innerText = "Completed";
+                    }
+                }
+
+            } catch (err) {
+                clearInterval(executionTimer);
+                appendTerminalLog("ERROR", `Connection Error: ${err.message}`);
+                statusIndicator.className = "status-dot failed";
+                statusText.innerText = "Error";
+                runButton.disabled = false;
+            }
+        });
+
+        function handleAgentUpdate(event) {
+            const node = event.node;
+            const data = event.data;
+
+            // Handle system-level errors emitted by the backend error handler
+            if (node === "system") {
+                clearInterval(executionTimer);
+                statusIndicator.className = "status-dot failed";
+                statusText.innerText = "Error";
+                runButton.disabled = false;
+                appendTerminalLog("ERROR", `System Error: ${data.error || "Unknown server error"}`);
+                return;
+            }
+
+            if (node === "planner") {
+                if (data.status === "success") {
+                    // Show final thought before completion message
+                    if (data.thought) {
+                        appendTerminalLog("PLANNER", `Thought: ${data.thought}`);
+                    }
+                    clearInterval(executionTimer);
+                    statusIndicator.className = "status-dot success";
+                    statusText.innerText = "Completed";
+                    runButton.disabled = false;
+                    appendTerminalLog("SYSTEM", "\u2713 Objective successfully completed! Browser session closed.");
+                    return;
+                } else if (data.status === "failed") {
+                    if (data.thought) {
+                        appendTerminalLog("PLANNER", `Thought: ${data.thought}`);
+                    }
+                    clearInterval(executionTimer);
+                    statusIndicator.className = "status-dot failed";
+                    statusText.innerText = "Failed";
+                    runButton.disabled = false;
+                    appendTerminalLog("ERROR", "Execution halted. Planner reported a failed run.");
+                    return;
+                }
+
+                if (data.next_tool) {
+                    if (data.thought) {
+                        appendTerminalLog("PLANNER", `Thought: ${data.thought}`);
+                    }
+                    appendTerminalLog("PLANNER", `Action: Calling ${data.next_tool} with arguments ${JSON.stringify(data.next_tool_args || {})}`);
+                }
+            } else if (node === "action") {
+                if (data.last_step) {
+                    const step = data.last_step;
+                    appendTerminalLog("ACTION", `Observation: ${step.observation}`);
+                }
+
+                if (data.current_url) {
+                    previewUrl.innerText = data.current_url;
+                    addressBarText.innerText = data.current_url;
+                }
+
+                if (data.screenshot_url) {
+                    const stepNum = data.attempts;
+                    const actionName = data.history ? (data.history[data.history.length - 1]?.tool || "step") : "step";
+                    const isFail = data.last_step && (data.last_step.observation.toLowerCase().includes("error") || data.last_step.observation.toLowerCase().includes("failed"));
+
+                    const stepObj = {
+                        number: stepNum,
+                        action: actionName,
+                        url: data.screenshot_url,
+                        pageUrl: data.current_url,
+                        isFailure: isFail,
+                        id: `step-log-${stepNum}`
+                    };
+
+                    stepHistory.push(stepObj);
+                    updateViewport(stepObj);
+                    addTimelineCard(stepObj);
+
+                    stepsCounter.innerText = stepNum;
+                }
+            }
+        }
+
+        function appendTerminalLog(type, text) {
+            const entry = document.createElement("div");
+            const entryId = `step-log-${stepHistory.length + 1}`;
+            entry.id = entryId;
+            entry.className = `log-entry ${type.toLowerCase()}`;
+            
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const header = document.createElement("div");
+            header.className = "log-header";
+            
+            const tag = document.createElement("span");
+            tag.className = `log-tag ${type.toLowerCase()}`;
+            tag.innerText = tag.innerText = type;
+            header.appendChild(tag);
+
+            const timestamp = document.createElement("span");
+            timestamp.className = "log-time";
+            timestamp.innerText = time;
+            header.appendChild(timestamp);
+            
+            entry.appendChild(header);
+
+            if (type === "PLANNER" && text.startsWith("Thought: ")) {
+                const thought = document.createElement("div");
+                thought.className = "log-thought";
+                thought.innerText = text.slice(9);
+                entry.appendChild(thought);
+            } else {
+                const content = document.createElement("div");
+                if (type === "PLANNER" && text.startsWith("Action: ")) {
+                    content.className = "log-action";
+                } else if (type === "ACTION") {
+                    content.className = "log-observation";
+                } else {
+                    content.className = "log-content";
+                }
+                content.innerText = text;
+                entry.appendChild(content);
+            }
+
+            terminal.appendChild(entry);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function updateViewport(step) {
+            viewportPlaceholder.style.display = "none";
+            viewportView.src = step.url + "?t=" + new Date().getTime(); // Bust browser cache
+            viewportView.className = "viewport-img loaded";
+            addressBarText.innerText = step.pageUrl || "about:blank";
+            previewUrl.innerText = step.pageUrl || "No active URL";
+            
+            // Reset active card classes
+            document.querySelectorAll(".timeline-card").forEach(card => {
+                card.classList.remove("active");
+                if (parseInt(card.dataset.step) === step.number) {
+                    card.classList.add("active");
+                }
+            });
+        }
+
+        function addTimelineCard(step) {
+            const card = document.createElement("div");
+            card.className = `timeline-card ${step.isFailure ? 'failure' : ''}`;
+            card.dataset.step = step.number;
+            card.style.backgroundImage = `url('${step.url}')`;
+            
+            const stepBadge = document.createElement("div");
+            stepBadge.className = `timeline-step-badge ${step.isFailure ? 'fail' : ''}`;
+            stepBadge.innerText = `S${step.number}`;
+            card.appendChild(stepBadge);
+            
+            const label = document.createElement("div");
+            label.className = "timeline-label";
+            label.innerText = step.action;
+            card.appendChild(label);
+
+            card.addEventListener("click", () => {
+                updateViewport(step);
+                
+                // Highlight and scroll to terminal log matching step ID
+                const matchedLog = document.getElementById(step.id);
+                if (matchedLog) {
+                    matchedLog.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    matchedLog.style.background = "hsla(262, 80%, 60%, 0.15)";
+                    setTimeout(() => {
+                        matchedLog.style.background = "";
+                    }, 1500);
+                }
+            });
+
+            timeline.appendChild(card);
+            timeline.scrollLeft = timeline.scrollWidth;
+        }
+    </script>
+</body>
+</html>
