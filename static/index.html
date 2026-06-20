@@ -3,433 +3,607 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CortexWeb Control Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>CortexWeb — Autonomous Browser Agent</title>
+    <meta name="description" content="CortexWeb: An autonomous AI agent that navigates the web, fills forms, and executes multi-step browser objectives in real time.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* ============================================
+           DESIGN SYSTEM — Warm Brutalism
+           Palette: Cream + Espresso + Electric Orange
+           ============================================ */
         :root {
-            --bg-base: hsl(224, 25%, 5%);
-            --card-base: hsla(224, 25%, 9%, 0.55);
-            --card-border: hsla(220, 20%, 20%, 0.35);
-            --card-border-glow: hsla(262, 80%, 60%, 0.1);
-            
-            --primary: hsl(262, 80%, 60%);
-            --primary-hover: hsl(262, 80%, 53%);
-            --primary-glow: hsla(262, 80%, 60%, 0.25);
-            
-            --accent-green: hsl(150, 75%, 45%);
-            --accent-green-glow: hsla(150, 75%, 45%, 0.15);
-            --accent-amber: hsl(38, 90%, 55%);
-            --accent-amber-glow: hsla(38, 90%, 55%, 0.15);
-            --accent-red: hsl(350, 80%, 55%);
-            
-            --text-primary: hsl(210, 40%, 98%);
-            --text-secondary: hsl(215, 18%, 78%);
-            --text-muted: hsl(215, 12%, 58%);
-            --terminal-bg: hsl(224, 30%, 3%);
+            --cream:        #F5F0E8;
+            --cream-dark:   #EDE7D9;
+            --sand:         #D9CEBB;
+            --sand-mid:     #C8B99A;
+            --espresso:     #1A1410;
+            --espresso-mid: #2E2620;
+            --espresso-lt:  #4A3E35;
+            --orange:       #FF5C28;
+            --orange-hover: #E84D1F;
+            --orange-lt:    #FF7A4D;
+            --orange-dim:   rgba(255, 92, 40, 0.12);
+            --orange-dim2:  rgba(255, 92, 40, 0.06);
+
+            --text-head:    #1A1410;
+            --text-body:    #3D3128;
+            --text-muted:   #7A6B5D;
+            --text-faint:   #A89880;
+
+            /* Log colours */
+            --log-planner:  #D4500E;
+            --log-action:   #2E6B3E;
+            --log-system:   #5A6E8A;
+            --log-error:    #B52020;
+
+            --radius-sm:    6px;
+            --radius-md:    12px;
+            --radius-lg:    18px;
+            --radius-xl:    24px;
+
+            --shadow-sm:    0 2px 8px rgba(26,20,16,0.08);
+            --shadow-md:    0 4px 20px rgba(26,20,16,0.12);
+            --shadow-lg:    0 8px 40px rgba(26,20,16,0.16);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        /* ===== RESET ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
 
         body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            height: 100vh;
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--cream);
+            color: var(--text-body);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(262, 80%, 60%, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, hsla(150, 75%, 45%, 0.04) 0px, transparent 50%);
+            position: relative;
         }
 
+        /* Subtle texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231A1410' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--cream-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--sand-mid); }
+
+        /* ===== HEADER ===== */
         header {
-            padding: 1.1rem 2rem;
-            background: hsla(224, 25%, 5%, 0.8);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--card-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: relative;
             z-index: 10;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-        }
-
-        .header-brand {
+            background: var(--espresso);
+            border-bottom: 3px solid var(--orange);
+            padding: 0 2rem;
+            height: 60px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
+            flex-shrink: 0;
         }
 
-        .brand-orb {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-green) 100%);
-            box-shadow: 0 0 14px var(--primary-glow);
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
-        .brand-text h1 {
-            font-size: 1.3rem;
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--orange);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+        }
+
+        .brand-name {
+            font-size: 1.15rem;
             font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--cream);
+            letter-spacing: -0.3px;
         }
 
-        .brand-text p {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+        .brand-name span {
+            color: var(--orange);
+        }
+
+        .brand-sep {
+            width: 1px;
+            height: 22px;
+            background: var(--espresso-lt);
+            margin: 0 4px;
+        }
+
+        .brand-tag {
+            font-size: 0.72rem;
+            color: var(--text-faint);
+            font-family: 'Space Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-top: 1px;
         }
 
-        .header-stats {
+        .header-right {
             display: flex;
             align-items: center;
             gap: 1.25rem;
         }
 
-        .stat-capsule {
-            background: hsla(224, 15%, 15%, 0.45);
-            border: 1px solid var(--card-border);
-            padding: 0.45rem 1rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
+        .stat-pill {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: var(--text-secondary);
+            background: var(--espresso-mid);
+            border: 1px solid var(--espresso-lt);
+            padding: 0.35rem 0.85rem;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            color: var(--text-faint);
+            font-family: 'Space Mono', monospace;
         }
 
-        .stat-capsule strong {
-            color: var(--text-primary);
+        .stat-pill strong {
+            color: var(--cream);
+            font-weight: 700;
         }
 
         .status-badge {
-            background: hsla(224, 15%, 15%, 0.55);
-            border: 1px solid var(--card-border);
-            padding: 0.45rem 1.2rem;
-            border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
+            border: 1.5px solid var(--espresso-lt);
+            border-radius: 100px;
+            padding: 0.35rem 1rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--cream);
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .status-badge.running {
+            border-color: var(--orange);
+            background: rgba(255,92,40,0.08);
+        }
+
+        .status-badge.success {
+            border-color: #2E6B3E;
+            background: rgba(46,107,62,0.1);
+        }
+
+        .status-badge.failed {
+            border-color: #B52020;
+            background: rgba(181,32,32,0.1);
         }
 
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: var(--text-muted);
+            background: var(--espresso-lt);
+            flex-shrink: 0;
+            transition: background 0.3s, box-shadow 0.3s;
         }
 
         .status-dot.running {
-            background-color: var(--accent-amber);
-            box-shadow: 0 0 10px var(--accent-amber);
-            animation: pulse 1.5s infinite;
+            background: var(--orange);
+            box-shadow: 0 0 0 0 rgba(255,92,40,0.5);
+            animation: pingOrange 1.4s cubic-bezier(0,0,0.2,1) infinite;
         }
 
         .status-dot.success {
-            background-color: var(--accent-green);
-            box-shadow: 0 0 10px var(--accent-green);
+            background: #34A853;
         }
 
         .status-dot.failed {
-            background-color: var(--accent-red);
-            box-shadow: 0 0 10px var(--accent-red);
+            background: #B52020;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.6; }
+        @keyframes pingOrange {
+            0%   { box-shadow: 0 0 0 0 rgba(255,92,40,0.55); }
+            70%  { box-shadow: 0 0 0 8px rgba(255,92,40,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,92,40,0); }
         }
 
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            gap: 1.25rem;
-            overflow: hidden;
-        }
-
-        .control-bar {
-            background: var(--card-base);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 1.25rem;
-            backdrop-filter: blur(20px);
+        /* ===== COMMAND BAR ===== */
+        .command-section {
+            position: relative;
+            z-index: 5;
+            background: var(--cream-dark);
+            border-bottom: 1px solid var(--sand);
+            padding: 1rem 2rem;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            gap: 1rem;
+            flex-shrink: 0;
         }
 
-        .control-input-group {
-            display: flex;
-            gap: 12px;
-            flex: 1;
+        .select-wrap {
+            position: relative;
+            flex-shrink: 0;
         }
 
-        .prompt-select {
-            background: hsl(224, 20%, 8%);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.75rem 1.1rem;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
+        .task-select {
+            appearance: none;
+            background: var(--cream);
+            border: 1.5px solid var(--sand);
+            color: var(--text-body);
+            padding: 0.65rem 2.4rem 0.65rem 1rem;
+            border-radius: var(--radius-md);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
+            outline: none;
             transition: border-color 0.2s;
+            box-shadow: var(--shadow-sm);
         }
 
-        .prompt-select:focus {
-            border-color: var(--primary);
+        .task-select:focus { border-color: var(--orange); }
+
+        .select-arrow {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--text-muted);
         }
 
         .objective-input {
             flex: 1;
-            background: hsl(224, 20%, 8%);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            padding: 0.75rem 1.25rem;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.9rem;
+            background: var(--cream);
+            border: 1.5px solid var(--sand);
+            color: var(--text-head);
+            padding: 0.65rem 1.2rem;
+            border-radius: var(--radius-md);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.875rem;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow-sm);
         }
 
+        .objective-input::placeholder { color: var(--text-faint); }
+
         .objective-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 12px var(--primary-glow);
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px var(--orange-dim);
         }
 
         .launch-btn {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-            border: none;
-            color: white;
-            padding: 0.75rem 1.75rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: box-shadow 0.2s, transform 0.1s;
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 14px var(--primary-glow);
+            background: var(--orange);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(255,92,40,0.35);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .launch-btn:hover {
-            box-shadow: 0 4px 20px hsla(262, 80%, 60%, 0.55);
+            background: var(--orange-hover);
+            box-shadow: 0 6px 20px rgba(255,92,40,0.45);
+            transform: translateY(-1px);
         }
 
-        .launch-btn:active {
-            transform: scale(0.98);
-        }
+        .launch-btn:active { transform: translateY(0) scale(0.98); }
 
         .launch-btn:disabled {
-            background: hsl(224, 10%, 15%);
+            background: var(--sand);
             color: var(--text-muted);
             cursor: not-allowed;
             box-shadow: none;
+            transform: none;
         }
 
-        .workspace-grid {
+        .launch-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* Spinner for loading state */
+        .btn-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== MAIN WORKSPACE ===== */
+        main {
             flex: 1;
             display: grid;
-            grid-template-columns: 4fr 5.5fr;
-            gap: 1.25rem;
+            grid-template-columns: 1fr 1.4fr;
             overflow: hidden;
-            height: 100%;
+            position: relative;
+            z-index: 1;
         }
 
-        .pane {
-            background: var(--card-base);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            backdrop-filter: blur(20px);
+        /* ===== LEFT PANEL — LOGS ===== */
+        .log-panel {
             display: flex;
             flex-direction: column;
+            border-right: 1px solid var(--sand);
             overflow: hidden;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
         }
 
-        .pane-header {
-            padding: 0.9rem 1.25rem;
-            border-bottom: 1px solid var(--card-border);
+        .panel-header {
+            padding: 0.75rem 1.5rem;
+            background: var(--cream-dark);
+            border-bottom: 1px solid var(--sand);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            background: hsla(224, 20%, 8%, 0.45);
+            justify-content: space-between;
+            flex-shrink: 0;
         }
 
-        .pane-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.8px;
+        .panel-title {
+            font-size: 0.72rem;
+            font-weight: 700;
             text-transform: uppercase;
-            color: var(--text-secondary);
-        }
-
-        .pane-meta {
-            font-size: 0.75rem;
+            letter-spacing: 1.8px;
             color: var(--text-muted);
         }
 
-        /* Styled Terminal UI */
-        .terminal-container {
+        .panel-chip {
+            font-size: 0.68rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--text-faint);
+            background: var(--sand);
+            padding: 0.2rem 0.6rem;
+            border-radius: 100px;
+        }
+
+        .log-feed {
             flex: 1;
-            background: var(--terminal-bg);
-            padding: 1.25rem;
             overflow-y: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            line-height: 1.6;
+            padding: 1rem 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 2px;
         }
 
+        /* ===== LOG ENTRIES ===== */
         .log-entry {
-            border-left: 3px solid var(--primary);
-            padding-left: 12px;
-            animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            margin-bottom: 4px;
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            animation: fadeUp 0.2s ease-out;
         }
 
-        .log-entry.system { border-color: var(--text-muted); }
-        .log-entry.planner { border-color: var(--primary); }
-        .log-entry.action { border-color: var(--accent-green); }
-        .log-entry.error { border-color: var(--accent-red); }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-        .log-header {
+        .log-entry.system  { background: rgba(90, 110, 138, 0.07); }
+        .log-entry.planner { background: rgba(212, 80, 14, 0.06);  }
+        .log-entry.action  { background: rgba(46, 107, 62, 0.06);  }
+        .log-entry.error   { background: rgba(181, 32, 32, 0.07);  }
+
+        .log-entry-header {
             display: flex;
+            align-items: center;
             justify-content: space-between;
             margin-bottom: 4px;
         }
 
-        .log-tag {
+        .log-label {
+            font-size: 0.65rem;
             font-weight: 700;
-            font-size: 0.75rem;
             text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-family: 'Space Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .log-tag.system { color: var(--text-secondary); }
-        .log-tag.planner { color: var(--primary); }
-        .log-tag.action { color: var(--accent-green); }
-        .log-tag.error { color: var(--accent-red); }
+        .log-label::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .log-label.system  { color: var(--log-system);  }
+        .log-label.planner { color: var(--log-planner); }
+        .log-label.action  { color: var(--log-action);  }
+        .log-label.error   { color: var(--log-error);   }
 
         .log-time {
-            font-size: 0.7rem;
-            color: var(--text-muted);
+            font-size: 0.62rem;
+            color: var(--text-faint);
+            font-family: 'Space Mono', monospace;
         }
 
         .log-thought {
-            color: #C7D2FE;
             font-style: italic;
-            margin-bottom: 4px;
-            background: hsla(262, 80%, 60%, 0.05);
-            padding: 6px 10px;
-            border-radius: 6px;
-            border-left: 2px solid hsla(262, 80%, 60%, 0.3);
+            color: var(--espresso-lt);
+            font-size: 0.8rem;
+            line-height: 1.55;
+            padding: 5px 8px;
+            border-left: 2px solid var(--orange-lt);
+            background: var(--orange-dim2);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-top: 2px;
         }
 
-        .log-action {
-            color: hsl(262, 80%, 75%);
+        .log-action-text {
+            font-size: 0.8rem;
+            color: var(--log-planner);
             font-weight: 600;
+            line-height: 1.5;
         }
 
         .log-observation {
-            color: var(--text-secondary);
-            background: rgba(255, 255, 255, 0.02);
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 4px;
             font-size: 0.78rem;
+            color: var(--text-body);
+            font-family: 'Space Mono', monospace;
+            line-height: 1.55;
             white-space: pre-wrap;
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            word-break: break-word;
+            background: rgba(26,20,16,0.03);
+            padding: 6px 8px;
+            border-radius: var(--radius-sm);
+            margin-top: 2px;
+            border: 1px solid rgba(26,20,16,0.06);
         }
 
-        /* Browser Frame Simulator */
-        .browser-simulator {
-            flex: 1;
+        .log-plain {
+            font-size: 0.8rem;
+            color: var(--text-body);
+            line-height: 1.55;
+        }
+
+        /* Welcome message */
+        .log-welcome {
             display: flex;
             flex-direction: column;
-            background: hsl(224, 25%, 8%);
-            border-radius: 12px;
-            margin: 1.25rem;
-            overflow: hidden;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            position: relative;
-        }
-
-        .browser-chrome {
-            background: hsl(224, 20%, 10%);
-            border-bottom: 1px solid var(--card-border);
-            height: 40px;
-            display: flex;
             align-items: center;
-            padding: 0 12px;
-            gap: 16px;
+            justify-content: center;
+            height: 100%;
+            gap: 12px;
+            color: var(--text-faint);
         }
 
-        .browser-controls {
-            display: flex;
-            gap: 6px;
-        }
-
-        .control-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .dot-close { background-color: #EF4444; }
-        .dot-minimize { background-color: #F59E0B; }
-        .dot-maximize { background-color: #10B981; }
-
-        .browser-address-bar {
-            flex: 1;
-            background: hsl(224, 20%, 7%);
-            border: 1px solid var(--card-border);
-            height: 26px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-            font-family: 'JetBrains Mono', monospace;
-            gap: 6px;
-            overflow: hidden;
-        }
-
-        .ssl-lock {
-            color: var(--accent-green);
-        }
-
-        .browser-viewport {
-            flex: 1;
+        .log-welcome-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--orange-dim);
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: hsl(224, 30%, 4%);
+        }
+
+        .log-welcome-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--orange);
+        }
+
+        .log-welcome h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .log-welcome p {
+            font-size: 0.78rem;
+            text-align: center;
+            max-width: 220px;
+            line-height: 1.6;
+        }
+
+        /* ===== RIGHT PANEL — BROWSER + TIMELINE ===== */
+        .browser-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Browser Chrome */
+        .browser-chrome-bar {
+            background: var(--espresso-mid);
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--espresso-lt);
+        }
+
+        .chrome-dots {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .chrome-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .dot-r { background: #EF4444; }
+        .dot-y { background: #F59E0B; }
+        .dot-g { background: #10B981; }
+
+        .chrome-addr {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--espresso);
+            border: 1px solid var(--espresso-lt);
+            border-radius: var(--radius-sm);
+            padding: 0.3rem 0.75rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-faint);
+            overflow: hidden;
+        }
+
+        .chrome-addr-lock {
+            color: #34A853;
+            flex-shrink: 0;
+        }
+
+        .chrome-addr-url {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* Viewport */
+        .browser-viewport {
+            flex: 1;
+            background: var(--espresso);
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
         }
 
@@ -438,297 +612,483 @@
             max-height: 100%;
             object-fit: contain;
             display: none;
-            transition: opacity 0.3s ease;
+            border: none;
         }
 
-        .viewport-img.loaded {
-            display: block;
-        }
+        .viewport-img.visible { display: block; }
 
-        .viewport-placeholder {
+        .viewport-idle {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            gap: 14px;
         }
 
-        .viewport-placeholder svg {
-            width: 48px;
-            height: 48px;
-            stroke: hsla(255, 255, 255, 0.12);
-        }
-
-        /* Interactive Timeline Slider */
-        .timeline-grid {
-            background: var(--card-base);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
+        .viewport-idle-graphic {
+            width: 72px;
+            height: 72px;
+            border: 2px solid var(--espresso-lt);
+            border-radius: var(--radius-lg);
             display: flex;
-            gap: 1rem;
-            overflow-x: auto;
             align-items: center;
-            min-height: 95px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            justify-content: center;
+            position: relative;
+        }
+
+        .viewport-idle-graphic svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--espresso-lt);
+        }
+
+        .viewport-idle p {
+            font-size: 0.82rem;
+            color: var(--espresso-lt);
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Scanning animation overlay while running */
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--orange), transparent);
+            animation: scanLine 2s linear infinite;
+            display: none;
+        }
+
+        .scan-overlay.active { display: block; }
+
+        @keyframes scanLine {
+            0%   { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* ===== TIMELINE STRIP ===== */
+        .timeline-section {
+            border-top: 1px solid var(--sand);
+            background: var(--cream-dark);
+            padding: 0.65rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            overflow-x: auto;
+            min-height: 88px;
+            flex-shrink: 0;
+        }
+
+        .timeline-section::-webkit-scrollbar { height: 4px; }
+
+        .timeline-empty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-faint);
+            font-size: 0.75rem;
+            font-family: 'Space Mono', monospace;
+            white-space: nowrap;
         }
 
         .timeline-card {
-            width: 110px;
-            height: 65px;
-            border-radius: 8px;
-            background-size: cover;
-            background-position: center;
-            border: 2px solid transparent;
-            cursor: pointer;
-            opacity: 0.55;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             flex-shrink: 0;
-            position: relative;
+            width: 100px;
+            height: 64px;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--sand);
+            cursor: pointer;
             overflow: hidden;
-        }
-
-        .timeline-card::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.9) 100%);
-            z-index: 1;
+            position: relative;
+            background-size: cover;
+            background-position: center top;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+            opacity: 0.7;
         }
 
         .timeline-card:hover {
-            opacity: 0.9;
             transform: translateY(-2px);
+            opacity: 0.9;
+            border-color: var(--orange-lt);
+            box-shadow: 0 4px 12px rgba(255,92,40,0.2);
         }
 
         .timeline-card.active {
-            border-color: var(--primary);
+            border-color: var(--orange);
             opacity: 1;
-            box-shadow: 0 0 12px var(--primary-glow);
-            transform: scale(1.02);
+            box-shadow: 0 0 0 3px var(--orange-dim);
+            transform: translateY(-2px);
         }
 
-        .timeline-card.failure {
-            border-color: var(--accent-red);
+        .timeline-card.error-card {
+            border-color: #B52020;
         }
 
-        .timeline-label {
+        .tc-overlay {
             position: absolute;
-            bottom: 4px;
-            left: 6px;
-            right: 6px;
-            font-size: 0.55rem;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            z-index: 2;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-weight: 500;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 35%, rgba(26,20,16,0.85) 100%);
         }
 
-        .timeline-step-badge {
+        .tc-step {
             position: absolute;
             top: 4px;
-            left: 6px;
-            font-size: 0.52rem;
-            background: var(--primary);
-            color: white;
-            padding: 1px 4px;
-            border-radius: 3px;
+            left: 5px;
+            font-size: 0.55rem;
+            font-family: 'Space Mono', monospace;
             font-weight: 700;
+            background: var(--orange);
+            color: white;
+            padding: 1px 5px;
+            border-radius: 3px;
             z-index: 2;
         }
 
-        .timeline-step-badge.fail {
-            background: var(--accent-red);
+        .tc-step.err { background: #B52020; }
+
+        .tc-label {
+            position: absolute;
+            bottom: 4px;
+            left: 5px;
+            right: 5px;
+            font-size: 0.6rem;
+            color: var(--cream);
+            font-family: 'Space Mono', monospace;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            z-index: 2;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* ===== RESIZE GUTTER ===== */
+        .resize-gutter {
+            width: 1px;
+            background: var(--sand);
+            cursor: col-resize;
+            transition: width 0.15s, background 0.15s;
+        }
+
+        .resize-gutter:hover {
+            width: 3px;
+            background: var(--orange);
+        }
+
+        /* ===== FOOTER STRIP ===== */
+        footer {
+            position: relative;
+            z-index: 5;
+            background: var(--espresso);
+            padding: 0.35rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            border-top: 1px solid var(--espresso-lt);
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .footer-item {
+            font-size: 0.65rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--espresso-lt);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .footer-item .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--espresso-lt);
+        }
+
+        .footer-item .dot.on { background: #34A853; }
+
+        .footer-right {
+            font-size: 0.62rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--espresso-lt);
         }
     </style>
 </head>
 <body>
+    <!-- ===== HEADER ===== -->
     <header>
-        <div class="header-brand">
-            <div class="brand-orb"></div>
-            <div class="brand-text">
-                <h1>CORTEXWEB CONTROL CENTER</h1>
-                <p>Autonomous Agent Monitor</p>
+        <div class="brand">
+            <div class="brand-logo">
+                <div class="brand-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
+                        <path d="M2 12h4M18 12h4M12 2v4M12 18v4"/>
+                    </svg>
+                </div>
+                <span class="brand-name">Cortex<span>Web</span></span>
             </div>
+            <div class="brand-sep"></div>
+            <span class="brand-tag">Autonomous Agent</span>
         </div>
-        <div class="header-stats">
-            <div class="stat-capsule">
-                <span>Objective Steps:</span>
-                <strong id="steps-counter">0</strong>
+
+        <div class="header-right">
+            <div class="stat-pill">
+                Steps: <strong id="steps-counter">0</strong>
             </div>
-            <div class="stat-capsule">
-                <span>Duration:</span>
-                <strong id="timer-counter">0.0s</strong>
+            <div class="stat-pill">
+                Time: <strong id="timer-counter">0.0s</strong>
             </div>
-            <div class="status-badge">
-                <span class="status-dot" id="status-indicator"></span>
+            <div class="status-badge" id="status-badge">
+                <div class="status-dot" id="status-dot"></div>
                 <span id="status-text">Standby</span>
             </div>
         </div>
     </header>
 
+    <!-- ===== COMMAND BAR ===== -->
+    <div class="command-section">
+        <div class="select-wrap">
+            <select class="task-select" id="task-select">
+                <option value="shadcn">Shadcn Form Verification</option>
+                <option value="custom">Custom Objective…</option>
+            </select>
+            <svg class="select-arrow" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M6 9l6 6 6-6"/>
+            </svg>
+        </div>
+
+        <input
+            type="text"
+            class="objective-input"
+            id="objective-field"
+            placeholder="Enter a browser objective for the agent…"
+        />
+
+        <button class="launch-btn" id="run-button">
+            <div class="btn-spinner" id="btn-spinner"></div>
+            <svg id="btn-play-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span id="btn-label">Launch Agent</span>
+        </button>
+    </div>
+
+    <!-- ===== MAIN WORKSPACE ===== -->
     <main>
-        <div class="control-bar">
-            <div class="control-input-group">
-                <select class="prompt-select" id="task-select">
-                    <option value="shadcn">Shadcn Form Verification (Assignment 4)</option>
-                    <option value="custom">Custom Objective...</option>
-                </select>
-                <input type="text" class="objective-input" id="objective-field" placeholder="Enter browser objective...">
-                <button class="launch-btn" id="run-button">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
-                    Launch Agent
-                </button>
+        <!-- LEFT: LOG FEED -->
+        <div class="log-panel" id="log-panel">
+            <div class="panel-header">
+                <span class="panel-title">Execution Log</span>
+                <span class="panel-chip" id="log-count-chip">0 events</span>
+            </div>
+            <div class="log-feed" id="log-feed">
+                <div class="log-welcome" id="log-welcome">
+                    <div class="log-welcome-icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3>Agent Ready</h3>
+                    <p>Select an objective and click Launch Agent to start a browser session.</p>
+                </div>
             </div>
         </div>
 
-        <div class="workspace-grid">
-            <!-- Left Side: Terminal Log -->
-            <div class="pane">
-                <div class="pane-header">
-                    <span class="pane-title">Execution Logs</span>
-                    <span class="pane-meta">Streaming Node Actions</span>
+        <!-- RIGHT: BROWSER PANEL -->
+        <div class="browser-panel">
+            <div class="panel-header" style="border-left: 1px solid var(--sand);">
+                <span class="panel-title">Browser Session</span>
+                <span class="panel-chip" id="preview-url">No active URL</span>
+            </div>
+
+            <!-- Fake browser chrome -->
+            <div class="browser-chrome-bar">
+                <div class="chrome-dots">
+                    <div class="chrome-dot dot-r"></div>
+                    <div class="chrome-dot dot-y"></div>
+                    <div class="chrome-dot dot-g"></div>
                 </div>
-                <div class="terminal-container" id="terminal">
-                    <div class="terminal-welcome">
-                        &gt; CortexWeb Agent initialization complete. Ready to receive commands.<br>
-                        &gt; Select an objective above and click "Launch Agent" to start execution.
-                    </div>
+                <div class="chrome-addr">
+                    <svg class="chrome-addr-lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                    <span class="chrome-addr-url" id="address-bar-text">about:blank</span>
                 </div>
             </div>
 
-            <!-- Right Side: Screenshot Preview -->
-            <div class="pane">
-                <div class="pane-header">
-                    <span class="pane-title" id="preview-title">Browser View</span>
-                    <span class="pane-meta" id="preview-url">No active URL</span>
-                </div>
-                
-                <div class="browser-simulator">
-                    <div class="browser-chrome">
-                        <div class="browser-controls">
-                            <div class="control-dot dot-close"></div>
-                            <div class="control-dot dot-minimize"></div>
-                            <div class="control-dot dot-maximize"></div>
-                        </div>
-                        <div class="browser-address-bar">
-                            <span class="ssl-lock">&#128274;</span>
-                            <span id="address-bar-text">about:blank</span>
-                        </div>
+            <!-- Viewport -->
+            <div class="browser-viewport" id="browser-viewport">
+                <div class="scan-overlay" id="scan-overlay"></div>
+                <div class="viewport-idle" id="viewport-idle">
+                    <div class="viewport-idle-graphic">
+                        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+                        </svg>
                     </div>
-                    <div class="browser-viewport">
-                        <div class="viewport-placeholder" id="viewport-placeholder">
-                            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z"/></svg>
-                            <span>Launch agent to establish viewport session</span>
-                        </div>
-                        <img src="" alt="Browser Screen" class="viewport-img" id="viewport-view">
-                    </div>
+                    <p>// awaiting agent session</p>
                 </div>
+                <img
+                    src=""
+                    alt="Agent Browser View"
+                    class="viewport-img"
+                    id="viewport-img"
+                />
+            </div>
 
-                <div class="timeline-grid" id="timeline">
-                    <!-- Step Timeline Cards go here -->
+            <!-- Timeline filmstrip -->
+            <div class="timeline-section" id="timeline">
+                <div class="timeline-empty" id="timeline-empty">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                    Steps will appear here during execution
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-left">
+            <div class="footer-item">
+                <div class="dot on" id="api-dot"></div>
+                <span id="api-status">API Connected</span>
+            </div>
+            <div class="footer-item">
+                model: gemini-2.5-flash
+            </div>
+        </div>
+        <div class="footer-right">
+            CortexWeb v1.0 · Agentic Web Navigator
+        </div>
+    </footer>
+
     <script>
-        const SHADCN_DEFAULT_OBJECTIVE = "Navigate to: https://ui.shadcn.com/docs/forms/react-hook-form. Find the username input field (labeled 'Username') and fill it with 'Antigravity-Agent'. If there are other fields like description, fill them. Click the Submit button to verify React Hook Form.";
+        // ===== CONSTANTS =====
+        const SHADCN_OBJECTIVE = "Navigate to: https://ui.shadcn.com/docs/forms/react-hook-form. Find the username input field (labeled 'Username') and fill it with 'Antigravity-Agent'. If there are other fields like description, fill them. Click the Submit button to verify React Hook Form.";
 
-        const taskSelect = document.getElementById("task-select");
-        const objectiveField = document.getElementById("objective-field");
-        const runButton = document.getElementById("run-button");
-        const terminal = document.getElementById("terminal");
-        const statusIndicator = document.getElementById("status-indicator");
-        const statusText = document.getElementById("status-text");
-        const viewportView = document.getElementById("viewport-view");
-        const viewportPlaceholder = document.getElementById("viewport-placeholder");
-        const previewUrl = document.getElementById("preview-url");
-        const addressBarText = document.getElementById("address-bar-text");
-        const timeline = document.getElementById("timeline");
-        const stepsCounter = document.getElementById("steps-counter");
-        const timerCounter = document.getElementById("timer-counter");
+        // ===== ELEMENTS =====
+        const taskSelect       = document.getElementById("task-select");
+        const objectiveField   = document.getElementById("objective-field");
+        const runButton        = document.getElementById("run-button");
+        const btnLabel         = document.getElementById("btn-label");
+        const btnSpinner       = document.getElementById("btn-spinner");
+        const btnPlayIcon      = document.getElementById("btn-play-icon");
+        const logFeed          = document.getElementById("log-feed");
+        const logWelcome       = document.getElementById("log-welcome");
+        const logCountChip     = document.getElementById("log-count-chip");
+        const stepsCounter     = document.getElementById("steps-counter");
+        const timerCounter     = document.getElementById("timer-counter");
+        const statusBadge      = document.getElementById("status-badge");
+        const statusDot        = document.getElementById("status-dot");
+        const statusText       = document.getElementById("status-text");
+        const viewportImg      = document.getElementById("viewport-img");
+        const viewportIdle     = document.getElementById("viewport-idle");
+        const scanOverlay      = document.getElementById("scan-overlay");
+        const previewUrl       = document.getElementById("preview-url");
+        const addressBarText   = document.getElementById("address-bar-text");
+        const timeline         = document.getElementById("timeline");
+        const timelineEmpty    = document.getElementById("timeline-empty");
 
-        let stepHistory = [];
-        let executionTimer = null;
-        let timerStart = 0;
+        // ===== STATE =====
+        let stepHistory     = [];
+        let logCount        = 0;
+        let executionTimer  = null;
+        let timerStart      = 0;
 
-        // Prepopulate default objective
-        objectiveField.value = SHADCN_DEFAULT_OBJECTIVE;
+        // ===== INIT =====
+        objectiveField.value    = SHADCN_OBJECTIVE;
         objectiveField.disabled = true;
 
         taskSelect.addEventListener("change", () => {
             if (taskSelect.value === "shadcn") {
-                objectiveField.value = SHADCN_DEFAULT_OBJECTIVE;
+                objectiveField.value    = SHADCN_OBJECTIVE;
                 objectiveField.disabled = true;
             } else {
-                objectiveField.value = "";
+                objectiveField.value    = "";
                 objectiveField.disabled = false;
                 objectiveField.focus();
             }
         });
 
+        // ===== LAUNCH BUTTON =====
         runButton.addEventListener("click", async () => {
             const objective = objectiveField.value.trim();
             if (!objective) {
-                alert("Please select or enter an objective first!");
+                objectiveField.focus();
+                objectiveField.style.borderColor = "var(--log-error)";
+                setTimeout(() => objectiveField.style.borderColor = "", 1500);
                 return;
             }
 
-            // Reset UI
-            runButton.disabled = true;
-            terminal.innerHTML = "";
-            timeline.innerHTML = "";
-            stepHistory = [];
-            stepsCounter.innerText = "0";
-            
-            // Start timer
+            // --- Reset UI ---
             clearInterval(executionTimer);
-            timerStart = Date.now();
+            stepHistory = [];
+            logCount    = 0;
+
+            // Clear log feed (keep welcome hidden)
+            logFeed.innerHTML = "";
+            logWelcome.style.display = "none";
+            logCountChip.textContent = "0 events";
+
+            // Clear timeline
+            timeline.innerHTML = "";
+            timelineEmpty.style.display = "none";
+            timeline.appendChild(timelineEmpty);
+
+            // Reset viewport
+            viewportImg.className   = "viewport-img";
+            viewportImg.src         = "";
+            viewportIdle.style.display = "flex";
+
+            stepsCounter.textContent = "0";
+
+            // Set running state
+            setStatus("running", "Running");
+            scanOverlay.classList.add("active");
+
+            // Disable button, show spinner
+            runButton.disabled         = true;
+            btnSpinner.style.display   = "block";
+            btnPlayIcon.style.display  = "none";
+            btnLabel.textContent       = "Running…";
+
+            // Start timer
+            timerStart     = Date.now();
             executionTimer = setInterval(() => {
-                const diff = (Date.now() - timerStart) / 1000;
-                timerCounter.innerText = diff.toFixed(1) + "s";
+                timerCounter.textContent = ((Date.now() - timerStart) / 1000).toFixed(1) + "s";
             }, 100);
 
-            statusIndicator.className = "status-dot running";
-            statusText.innerText = "Running";
-            
-            appendTerminalLog("SYSTEM", "Initializing agent runner graph... Loading browser binaries...");
+            appendLog("SYSTEM", null, "Initializing agent runner… Loading browser binaries.");
 
             try {
-                const response = await fetch("/api/run", {
-                    method: "POST",
+                const res = await fetch("/api/run", {
+                    method:  "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ objective })
+                    body:    JSON.stringify({ objective })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-                }
+                if (!res.ok) throw new Error(`Server error ${res.status}: ${res.statusText}`);
 
-                const reader = response.body.getReader();
+                const reader  = res.body.getReader();
                 const decoder = new TextDecoder();
-                let buffer = "";
+                let buffer    = "";
 
-                const processLines = (chunk) => {
+                const processBuffer = (chunk) => {
                     const lines = chunk.split("\n");
                     for (const line of lines) {
-                        const cleanLine = line.trim();
-                        if (cleanLine.startsWith("data: ")) {
+                        const clean = line.trim();
+                        if (clean.startsWith("data: ")) {
                             try {
-                                const parsed = JSON.parse(cleanLine.slice(6));
-                                handleAgentUpdate(parsed);
+                                handleEvent(JSON.parse(clean.slice(6)));
                             } catch(e) {
-                                console.error("Error parsing SSE line:", e, cleanLine);
+                                console.warn("SSE parse error:", e, clean);
                             }
                         }
                     }
@@ -736,207 +1096,193 @@
 
                 while (true) {
                     const { done, value } = await reader.read();
-
                     if (done) {
-                        // Flush any remaining buffered data
-                        if (buffer.trim()) processLines(buffer);
+                        if (buffer.trim()) processBuffer(buffer);
                         break;
                     }
-
                     buffer += decoder.decode(value, { stream: true });
-                    const lastNewline = buffer.lastIndexOf("\n");
-                    if (lastNewline !== -1) {
-                        processLines(buffer.slice(0, lastNewline + 1));
-                        buffer = buffer.slice(lastNewline + 1);
+                    const cut = buffer.lastIndexOf("\n");
+                    if (cut !== -1) {
+                        processBuffer(buffer.slice(0, cut + 1));
+                        buffer = buffer.slice(cut + 1);
                     }
                 }
 
-                // If the agent finished without emitting a terminal status, re-enable button
+                // Stream ended without explicit terminal event
                 if (runButton.disabled) {
-                    clearInterval(executionTimer);
-                    runButton.disabled = false;
-                    if (statusText.innerText === "Running") {
-                        statusIndicator.className = "status-dot success";
-                        statusText.innerText = "Completed";
-                    }
+                    stopExecution("success", "Completed");
                 }
 
             } catch (err) {
-                clearInterval(executionTimer);
-                appendTerminalLog("ERROR", `Connection Error: ${err.message}`);
-                statusIndicator.className = "status-dot failed";
-                statusText.innerText = "Error";
-                runButton.disabled = false;
+                stopExecution("failed", "Error");
+                appendLog("ERROR", null, `Connection Error: ${err.message}`);
             }
         });
 
-        function handleAgentUpdate(event) {
-            const node = event.node;
-            const data = event.data;
+        // ===== EVENT HANDLER =====
+        function handleEvent(event) {
+            const { node, data } = event;
 
-            // Handle system-level errors emitted by the backend error handler
             if (node === "system") {
-                clearInterval(executionTimer);
-                statusIndicator.className = "status-dot failed";
-                statusText.innerText = "Error";
-                runButton.disabled = false;
-                appendTerminalLog("ERROR", `System Error: ${data.error || "Unknown server error"}`);
+                stopExecution("failed", "Error");
+                appendLog("ERROR", null, `System Error: ${data.error || "Unknown server error"}`);
                 return;
             }
 
             if (node === "planner") {
                 if (data.status === "success") {
-                    // Show final thought before completion message
-                    if (data.thought) {
-                        appendTerminalLog("PLANNER", `Thought: ${data.thought}`);
-                    }
-                    clearInterval(executionTimer);
-                    statusIndicator.className = "status-dot success";
-                    statusText.innerText = "Completed";
-                    runButton.disabled = false;
-                    appendTerminalLog("SYSTEM", "\u2713 Objective successfully completed! Browser session closed.");
-                    return;
-                } else if (data.status === "failed") {
-                    if (data.thought) {
-                        appendTerminalLog("PLANNER", `Thought: ${data.thought}`);
-                    }
-                    clearInterval(executionTimer);
-                    statusIndicator.className = "status-dot failed";
-                    statusText.innerText = "Failed";
-                    runButton.disabled = false;
-                    appendTerminalLog("ERROR", "Execution halted. Planner reported a failed run.");
+                    if (data.thought) appendLog("PLANNER", data.thought, null);
+                    stopExecution("success", "Completed");
+                    appendLog("SYSTEM", null, "✓ Objective completed. Browser session closed.");
                     return;
                 }
-
+                if (data.status === "failed") {
+                    if (data.thought) appendLog("PLANNER", data.thought, null);
+                    stopExecution("failed", "Failed");
+                    appendLog("ERROR", null, "Planner halted: execution failed after max retries.");
+                    return;
+                }
+                if (data.thought) appendLog("PLANNER", data.thought, null);
                 if (data.next_tool) {
-                    if (data.thought) {
-                        appendTerminalLog("PLANNER", `Thought: ${data.thought}`);
-                    }
-                    appendTerminalLog("PLANNER", `Action: Calling ${data.next_tool} with arguments ${JSON.stringify(data.next_tool_args || {})}`);
+                    appendLog("PLANNER", null, `→ ${data.next_tool}(${JSON.stringify(data.next_tool_args || {})})`);
                 }
-            } else if (node === "action") {
+            }
+
+            if (node === "action") {
                 if (data.last_step) {
-                    const step = data.last_step;
-                    appendTerminalLog("ACTION", `Observation: ${step.observation}`);
+                    appendLog("ACTION", null, data.last_step.observation);
                 }
-
                 if (data.current_url) {
-                    previewUrl.innerText = data.current_url;
-                    addressBarText.innerText = data.current_url;
+                    previewUrl.textContent    = data.current_url;
+                    addressBarText.textContent = data.current_url;
                 }
-
                 if (data.screenshot_url) {
-                    const stepNum = data.attempts;
-                    const actionName = data.history ? (data.history[data.history.length - 1]?.tool || "step") : "step";
-                    const isFail = data.last_step && (data.last_step.observation.toLowerCase().includes("error") || data.last_step.observation.toLowerCase().includes("failed"));
+                    const stepNum  = data.attempts;
+                    const toolName = (data.history && data.history.length)
+                        ? data.history[data.history.length - 1].tool
+                        : "step";
+                    const obs = data.last_step ? data.last_step.observation.toLowerCase() : "";
+                    const isFail = obs.includes("error") || obs.includes("failed");
 
-                    const stepObj = {
-                        number: stepNum,
-                        action: actionName,
-                        url: data.screenshot_url,
-                        pageUrl: data.current_url,
-                        isFailure: isFail,
-                        id: `step-log-${stepNum}`
+                    const step = {
+                        number:    stepNum,
+                        action:    toolName,
+                        imgUrl:    data.screenshot_url,
+                        pageUrl:   data.current_url || "about:blank",
+                        isFailure: isFail
                     };
 
-                    stepHistory.push(stepObj);
-                    updateViewport(stepObj);
-                    addTimelineCard(stepObj);
-
-                    stepsCounter.innerText = stepNum;
+                    stepHistory.push(step);
+                    showInViewport(step);
+                    addTimelineCard(step);
+                    stepsCounter.textContent = stepNum;
                 }
             }
         }
 
-        function appendTerminalLog(type, text) {
-            const entry = document.createElement("div");
-            const entryId = `step-log-${stepHistory.length + 1}`;
-            entry.id = entryId;
-            entry.className = `log-entry ${type.toLowerCase()}`;
-            
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            const header = document.createElement("div");
-            header.className = "log-header";
-            
-            const tag = document.createElement("span");
-            tag.className = `log-tag ${type.toLowerCase()}`;
-            tag.innerText = tag.innerText = type;
-            header.appendChild(tag);
+        // ===== HELPERS =====
+        function setStatus(state, label) {
+            statusBadge.className = `status-badge ${state}`;
+            statusDot.className   = `status-dot ${state}`;
+            statusText.textContent = label;
+        }
 
-            const timestamp = document.createElement("span");
-            timestamp.className = "log-time";
-            timestamp.innerText = time;
-            header.appendChild(timestamp);
-            
+        function stopExecution(state, label) {
+            clearInterval(executionTimer);
+            setStatus(state, label);
+            scanOverlay.classList.remove("active");
+            runButton.disabled        = false;
+            btnSpinner.style.display  = "none";
+            btnPlayIcon.style.display = "block";
+            btnLabel.textContent      = "Launch Agent";
+        }
+
+        function appendLog(type, thought, text) {
+            logCount++;
+            logCountChip.textContent = `${logCount} event${logCount !== 1 ? "s" : ""}`;
+
+            const entry = document.createElement("div");
+            entry.className = `log-entry ${type.toLowerCase()}`;
+
+            const header = document.createElement("div");
+            header.className = "log-entry-header";
+
+            const label = document.createElement("span");
+            label.className = `log-label ${type.toLowerCase()}`;
+            label.textContent = type;
+
+            const ts = document.createElement("span");
+            ts.className = "log-time";
+            ts.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+            header.appendChild(label);
+            header.appendChild(ts);
             entry.appendChild(header);
 
-            if (type === "PLANNER" && text.startsWith("Thought: ")) {
-                const thought = document.createElement("div");
-                thought.className = "log-thought";
-                thought.innerText = text.slice(9);
-                entry.appendChild(thought);
-            } else {
-                const content = document.createElement("div");
-                if (type === "PLANNER" && text.startsWith("Action: ")) {
-                    content.className = "log-action";
-                } else if (type === "ACTION") {
-                    content.className = "log-observation";
-                } else {
-                    content.className = "log-content";
-                }
-                content.innerText = text;
-                entry.appendChild(content);
+            if (thought) {
+                const t = document.createElement("div");
+                t.className   = "log-thought";
+                t.textContent = thought;
+                entry.appendChild(t);
             }
 
-            terminal.appendChild(entry);
-            terminal.scrollTop = terminal.scrollHeight;
+            if (text) {
+                const c = document.createElement("div");
+                if (type === "PLANNER") {
+                    c.className   = "log-action-text";
+                } else if (type === "ACTION") {
+                    c.className   = "log-observation";
+                } else {
+                    c.className   = "log-plain";
+                }
+                c.textContent = text;
+                entry.appendChild(c);
+            }
+
+            logFeed.appendChild(entry);
+            logFeed.scrollTop = logFeed.scrollHeight;
         }
 
-        function updateViewport(step) {
-            viewportPlaceholder.style.display = "none";
-            viewportView.src = step.url + "?t=" + new Date().getTime(); // Bust browser cache
-            viewportView.className = "viewport-img loaded";
-            addressBarText.innerText = step.pageUrl || "about:blank";
-            previewUrl.innerText = step.pageUrl || "No active URL";
-            
-            // Reset active card classes
-            document.querySelectorAll(".timeline-card").forEach(card => {
-                card.classList.remove("active");
-                if (parseInt(card.dataset.step) === step.number) {
-                    card.classList.add("active");
-                }
+        function showInViewport(step) {
+            viewportIdle.style.display = "none";
+            viewportImg.src            = `${step.imgUrl}?t=${Date.now()}`;
+            viewportImg.className      = "viewport-img visible";
+            addressBarText.textContent = step.pageUrl;
+            previewUrl.textContent     = step.pageUrl;
+
+            document.querySelectorAll(".timeline-card").forEach(c => {
+                c.classList.toggle("active", parseInt(c.dataset.step) === step.number);
             });
         }
 
         function addTimelineCard(step) {
+            // Remove empty placeholder
+            if (timelineEmpty.parentNode === timeline) {
+                timeline.removeChild(timelineEmpty);
+            }
+
             const card = document.createElement("div");
-            card.className = `timeline-card ${step.isFailure ? 'failure' : ''}`;
-            card.dataset.step = step.number;
-            card.style.backgroundImage = `url('${step.url}')`;
-            
-            const stepBadge = document.createElement("div");
-            stepBadge.className = `timeline-step-badge ${step.isFailure ? 'fail' : ''}`;
-            stepBadge.innerText = `S${step.number}`;
-            card.appendChild(stepBadge);
-            
-            const label = document.createElement("div");
-            label.className = "timeline-label";
-            label.innerText = step.action;
-            card.appendChild(label);
+            card.className        = `timeline-card${step.isFailure ? " error-card" : ""}`;
+            card.dataset.step     = step.number;
+            card.style.backgroundImage = `url('${step.imgUrl}')`;
+
+            const overlay = document.createElement("div");
+            overlay.className = "tc-overlay";
+
+            const badge = document.createElement("div");
+            badge.className   = `tc-step${step.isFailure ? " err" : ""}`;
+            badge.textContent = `S${step.number}`;
+
+            const lbl = document.createElement("div");
+            lbl.className   = "tc-label";
+            lbl.textContent = step.action;
+
+            card.appendChild(overlay);
+            card.appendChild(badge);
+            card.appendChild(lbl);
 
             card.addEventListener("click", () => {
-                updateViewport(step);
-                
-                // Highlight and scroll to terminal log matching step ID
-                const matchedLog = document.getElementById(step.id);
-                if (matchedLog) {
-                    matchedLog.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    matchedLog.style.background = "hsla(262, 80%, 60%, 0.15)";
-                    setTimeout(() => {
-                        matchedLog.style.background = "";
-                    }, 1500);
-                }
+                showInViewport(step);
             });
 
             timeline.appendChild(card);
