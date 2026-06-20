@@ -30,7 +30,7 @@ class AgentPlanner:
             openai_api_key=settings.OPENROUTER_API_KEY,
             openai_api_base=settings.OPENROUTER_BASE_URL,
             temperature=0.0,
-            max_tokens=250
+            max_tokens=10000
         )
 
         self.structured_llm = self.llm.with_structured_output(AgentAction)
