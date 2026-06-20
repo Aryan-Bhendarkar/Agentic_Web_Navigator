@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 import config.logger
 from agent.executor import agent_app
+from agent.memory import AgentMemory 
 
 logger = logging.getLogger("TestAgent")
 
@@ -68,15 +69,12 @@ AGENT_TEST_HTML = """
 </body>
 </html>
 """
-
 async def main():
     # 1. Create local test form
     temp_form_path = Path("scratch/test_agent_bench.html").resolve()
     temp_form_path.parent.mkdir(parents=True, exist_ok=True)
     temp_form_path.write_text(AGENT_TEST_HTML, encoding="utf-8")
-
     file_url = f"file:///{str(temp_form_path).replace('\\', '/')}"
-
     # 2. Define initial state mapping
     initial_state = {
         "objective": (
@@ -92,26 +90,27 @@ async def main():
         "attempts": 0,
         "status": "running"
     }
-
     logger.info("Starting autonomous LangGraph execution loop...")
-
+    memory = AgentMemory() # Instantiate memory manager
     try:
         # 3. Invoke the compiled LangGraph workflow app
         final_state = await agent_app.ainvoke(initial_state)
-
         # 4. Review the results
         logger.info(f"Execution finished with status: {final_state['status']}")
         logger.info(f"Total steps taken: {final_state['attempts']}")
-        logger.info("Steps history executed:")
-        for idx, step in enumerate(final_state["history"], 1):
-            logger.info(f"Step {idx}: tool={step.tool}, args={step.args} -> {step.observation}")
-
+        
+        # Save run log via Memory Manager
+        log_file = memory.save_run_log(final_state["objective"], final_state["history"])
+        logger.info(f"Saved run logs to: {log_file}")
+        # Output Summary
+        summary = memory.get_run_summary(final_state["history"])
+        logger.info(f"Execution Summary: {summary}")
     except Exception as e:
         logger.error(f"Agent test run failed: {e}", exc_info=True)
     finally:
         # Clean up local form
         if temp_form_path.exists():
             temp_form_path.unlink()
-
+            
 if __name__ == "__main__":
     asyncio.run(main())

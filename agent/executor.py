@@ -84,10 +84,15 @@ async def action_node(state: AgentState) -> Dict[str, Any]:
         try:
             current_url = controller.page.url
             # Auto-take screen captures to document progress
-            scr_path = await controller.take_screenshot(f"step_{attempts + 1}")
-            screenshot_path = str(scr_path)
-        except Exception:
-            pass  # Browser might not be loaded yet
+            if observation.startswith("Error") or "failed" in observation.lower():
+                scr_path = await controller.take_screenshot(f"failure_step_{attempts + 1}")
+                screenshot_path = str(scr_path)
+                logger.warning(f"Tool failed. Captured failure screenshot to: {screenshot_path}")
+            else:
+                scr_path = await controller.take_screenshot(f"step_{attempts + 1}")
+                screenshot_path = str(scr_path)
+        except Exception as e:
+           logger.debug(f"Could not capture state values: {e}")
 
     return {
         "history": updated_history,
