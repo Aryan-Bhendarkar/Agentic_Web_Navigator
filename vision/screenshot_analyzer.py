@@ -24,7 +24,8 @@ class ScreenshotAnalyzer:
             model=settings.DEFAULT_LLM_MODEL,
             openai_api_key=settings.OPENROUTER_API_KEY,
             openai_api_base=settings.OPENROUTER_BASE_URL,
-            temperature=0.0
+            temperature=0.0,
+            max_tokens=100
         )
         # Force the LLM to output our validated Pydantic model directly
         self.structured_llm = self.llm.with_structured_output(ElementCoordinates)

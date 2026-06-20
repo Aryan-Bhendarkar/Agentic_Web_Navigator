@@ -57,7 +57,7 @@ async def test_tools_end_to_end_flow(temp_html_file):
 
         # 3. Find element tool
         find_res = await find_element.ainvoke({"label_or_name": "Full Name"})
-        assert "Found field matching" in find_res
+        assert "Found element matching" in find_res
         assert "#name-input" in find_res
 
         # 4. Fill field tool
